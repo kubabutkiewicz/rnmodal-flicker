@@ -5,53 +5,33 @@
  * @format
  */
 
-import React, {useEffect, useRef, useState} from 'react';
+import React from 'react';
 import {
   SafeAreaView,
   Text,
   Pressable,
-  TouchableWithoutFeedback,
   StyleSheet,
   View,
-  Modal,
-  Animated,
+  Dimensions,
 } from 'react-native';
+import Modal from 'react-native-modal';
+
+const {width, height} = Dimensions.get('window');
 
 function RNModal({visible, onClose}): React.JSX.Element {
-  const [backdropVisible, setBackdropVisible] = useState(false);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (visible) {
-      setBackdropVisible(true);
-      // Fade in
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }).start();
-    } else if (backdropVisible) {
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }).start(() => setBackdropVisible(false));
-    }
-  }, [visible, backdropVisible, fadeAnim]);
-
   return (
     <Modal
-      visible={visible}
-      transparent={true}
-      animationType="none"
-      onRequestClose={onClose}>
+      isVisible={visible}
+      hasBackdrop
+      useNativeDriver
+      useNativeDriverForBackdrop
+      animationIn={'slideInUp'}
+      animationOut={'slideOutDown'}
+      backdropTransitionOutTiming={0}
+      deviceHeight={height}
+      deviceWidth={width}
+      onBackdropPress={onClose}>
       <View style={styles.container}>
-        {backdropVisible && (
-          <TouchableWithoutFeedback onPress={onClose}>
-            <Animated.View style={[styles.backdrop, {opacity: fadeAnim}]} />
-          </TouchableWithoutFeedback>
-        )}
-
         <View style={styles.modalView}>
           <Text>Hello from Modal</Text>
           <Pressable onPress={onClose}>
@@ -67,9 +47,15 @@ function App(): React.JSX.Element {
   const [modalVisible, setModalVisible] = React.useState(false);
   return (
     <SafeAreaView>
-      <Pressable onPress={() => setModalVisible(!modalVisible)}>
-        <View style={styles.button}>
-          <Text>Touch Here</Text>
+      <Pressable
+        onPress={() => {
+          console.log('TouchableWithoutFeedback');
+          setModalVisible(true);
+        }}>
+        <View>
+          <View style={styles.button}>
+            <Text>Touch Here</Text>
+          </View>
         </View>
       </Pressable>
       <RNModal visible={modalVisible} onClose={() => setModalVisible(false)} />
