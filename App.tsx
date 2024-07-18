@@ -5,114 +5,111 @@
  * @format
  */
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
   Text,
-  useColorScheme,
+  Pressable,
+  TouchableWithoutFeedback,
+  StyleSheet,
   View,
+  Modal,
+  Animated,
 } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+function RNModal({visible, onClose}): React.JSX.Element {
+  const [backdropVisible, setBackdropVisible] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+  useEffect(() => {
+    if (visible) {
+      setBackdropVisible(true);
+      // Fade in
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    } else if (backdropVisible) {
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }).start(() => setBackdropVisible(false));
+    }
+  }, [visible, backdropVisible, fadeAnim]);
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="none"
+      onRequestClose={onClose}>
+      <View style={styles.container}>
+        {backdropVisible && (
+          <TouchableWithoutFeedback onPress={onClose}>
+            <Animated.View style={[styles.backdrop, {opacity: fadeAnim}]} />
+          </TouchableWithoutFeedback>
+        )}
+
+        <View style={styles.modalView}>
+          <Text>Hello from Modal</Text>
+          <Pressable onPress={onClose}>
+            <Text>Hide Modal</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
+  const [modalVisible, setModalVisible] = React.useState(false);
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+    <SafeAreaView>
+      <Pressable onPress={() => setModalVisible(!modalVisible)}>
+        <View style={styles.button}>
+          <Text>Touch Here</Text>
         </View>
-      </ScrollView>
+      </Pressable>
+      <RNModal visible={modalVisible} onClose={() => setModalVisible(false)} />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
+  backdrop: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    // Ensure the modal content is above the backdrop
+    zIndex: 1,
   },
-  highlight: {
-    fontWeight: '700',
+  button: {
+    alignItems: 'center',
+    backgroundColor: '#DDDDDD',
+    padding: 10,
   },
 });
-
 export default App;
